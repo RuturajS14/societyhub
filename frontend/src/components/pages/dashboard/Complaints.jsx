@@ -36,33 +36,48 @@ const Complaints = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      if (editingId) {
-        await api.put(`/complaints/${editingId}`, formData);
-        toast.success("Complaint Updated Successfully");
-      } else {
-        await api.post("/complaints", formData);
-        toast.success("Complaint Added Successfully");
-      }
+  // 🔥 Get the logged-in user's email from localStorage
+  const userData = JSON.parse(localStorage.getItem("user") || "{}");
+  const userEmail = userData.email; // ✅ This gets the email from your stored user
 
-      setFormData({
-        residentName: "",
-        flatNumber: "",
-        category: "Electrical",
-        description: "",
-        priority: "Medium",
-        status: "Pending",
+  // 🚨 Safety check
+  if (!userEmail) {
+    toast.error("Please log in again to submit a complaint.");
+    return;
+  }
+
+  try {
+    if (editingId) {
+      await api.put(`/complaints/${editingId}`, formData);
+      toast.success("Complaint Updated Successfully");
+    } else {
+      // ✅ Add the email to the data being sent
+      await api.post("/complaints", {
+        ...formData,
+        email: userEmail, // <-- THIS FIXES THE ERROR
       });
-
-      setEditingId(null);
-      fetchComplaints();
-    } catch (error) {
-      toast.error("Something went wrong");
+      toast.success("Complaint Added Successfully");
     }
-  };
+
+    // Reset form and refresh
+    setFormData({
+      residentName: "",
+      flatNumber: "",
+      category: "Electrical",
+      description: "",
+      priority: "Medium",
+      status: "Pending",
+    });
+    setEditingId(null);
+    fetchComplaints();
+  } catch (error) {
+    toast.error(error.response?.data?.message || "Something went wrong");
+    console.error(error);
+  }
+};
 
   const editComplaint = (complaint) => {
     setEditingId(complaint._id);
