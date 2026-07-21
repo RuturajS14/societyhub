@@ -36,33 +36,60 @@ const Complaints = () => {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      if (editingId) {
-        await api.put(`/complaints/${editingId}`, formData);
-        toast.success("Complaint Updated Successfully");
-      } else {
-        await api.post("/complaints", formData);
-        toast.success("Complaint Added Successfully");
-      }
+  // --- STEP 1: GET THE LOGGED-IN USER'S EMAIL ---
+  const userString = localStorage.getItem("user");
+  console.log("Raw user data from localStorage:", userString); // Check console
 
-      setFormData({
-        residentName: "",
-        flatNumber: "",
-        category: "Electrical",
-        description: "",
-        priority: "Medium",
-        status: "Pending",
-      });
+  let userEmail = "";
+  try {
+    const userData = JSON.parse(userString || "{}");
+    userEmail = userData.email || "";
+    console.log("Extracted Email:", userEmail); // Check console
+  } catch (err) {
+    console.error("Failed to parse user data", err);
+  }
 
-      setEditingId(null);
-      fetchComplaints();
-    } catch (error) {
-      toast.error("Something went wrong");
+  // --- STEP 2: STOP IF NO EMAIL (SAFETY) ---
+  if (!userEmail) {
+    toast.error("Session expired. Please logout and login again.");
+    return;
+  }
+
+  try {
+    if (editingId) {
+      await api.put(`/complaints/${editingId}`, formData);
+      toast.success("Complaint Updated Successfully");
+    } else {
+      // --- STEP 3: ADD THE EMAIL TO THE PAYLOAD ---
+      const payload = {
+        ...formData,   // residentName, flatNumber, etc.
+        email: userEmail, // <--- THIS FIXES THE ERROR
+      };
+      console.log("Sending payload:", payload); // Check console
+
+      await api.post("/complaints", payload);
+      toast.success("Complaint Added Successfully");
     }
-  };
+
+    // Reset form
+    setFormData({
+      residentName: "",
+      flatNumber: "",
+      category: "Electrical",
+      description: "",
+      priority: "Medium",
+      status: "Pending",
+    });
+    setEditingId(null);
+    fetchComplaints();
+  } catch (error) {
+    console.error("Backend Error:", error.response?.data); // Check console for detailed error
+    toast.error(error.response?.data?.message || "Something went wrong");
+  }
+};
 
   const editComplaint = (complaint) => {
     setEditingId(complaint._id);
