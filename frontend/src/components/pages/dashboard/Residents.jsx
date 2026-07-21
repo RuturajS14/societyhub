@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 
 const Residents = () => {
   const [residents, setResidents] = useState([]);
@@ -11,7 +11,7 @@ const Residents = () => {
 
   const fetchResidents = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/residents");
+      const res = await api.get("/residents");
       setResidents(res.data);
     } catch (err) {
       console.log(err);
