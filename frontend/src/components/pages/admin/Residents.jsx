@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../../api/axios";
 import {
   FaUsers,
   FaCheckCircle,
@@ -11,9 +11,7 @@ const Residents = () => {
 
   const fetchResidents = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:5000/api/admin/residents"
-      );
+      const res = await api.get("/admin/residents");
       setResidents(res.data);
     } catch (err) {
       console.log(err);
@@ -26,8 +24,8 @@ const Residents = () => {
 
   const updateStatus = async (id, status) => {
     try {
-      await axios.put(
-        `http://localhost:5000/api/admin/residents/${id}`,
+      await api.put(
+        `/admin/residents/${id}`,
         { status }
       );
       fetchResidents();

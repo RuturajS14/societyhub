@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import api from "../../api/axios";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEnvelope, FaLock, FaBuilding, FaEye, FaEyeSlash } from "react-icons/fa";
 import { toast } from "react-toastify";
@@ -29,8 +29,8 @@ const Login = () => {
     setLoading(true);
 
     try {
-     const res = await axios.post(
-        "https://societyhub-back.onrender.com/api/auth/login",
+     const res = await api.post(
+        "/auth/login",
         formData
       );
       localStorage.setItem("token", res.data.token);
